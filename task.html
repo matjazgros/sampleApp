@@ -6,6 +6,14 @@
    <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />   
    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js" ></script>   
    <script type="text/javascript" src="js/hc3.js" ></script>  
+   <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/angularjs/1.0.8/angular.min.js"></script>
+   <!-- Latest compiled and minified CSS -->
+	<link rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap.min.css">
+	<!-- Optional theme
+	<link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap-theme.min.css">
+	 -->
+	<!-- Latest compiled and minified JavaScript -->
+	<script src="https://netdna.bootstrapcdn.com/bootstrap/3.0.0/js/bootstrap.min.js"></script>
    <script type="text/javascript">
    chart_option={		
 		CreateOption:function(render, chart_type){	
@@ -18,7 +26,10 @@
 			return options = {
 				chart:{
 					renderTo:render,
-					type:chart_type
+					type:chart_type,
+					events: {
+			            load: initiateComments()
+		        	},
 				},
 				title: false,
 				yAxis: {	
@@ -43,6 +54,7 @@
 					shared: true,
 					useHTML: true
 				},
+				
 				plotOptions: {							
 					column: {
 						stacking: 'normal',
@@ -64,6 +76,16 @@
 								enabled: false
 							},
 							animation: false,
+							point: {
+			                    events: {
+			                        click: function() {
+			                        	// $(this).popover({
+			                        	// 	content: "test"
+			                        	// })
+			                            //alert ('Category: '+ this.category +', value: '+ this.y);
+			                        }
+			                    }
+			                }
 						}
 					},					  
 				exporting: {
@@ -87,9 +109,19 @@
 			while (charts["column_chart"].series.length > 0)  charts["column_chart"].series[0].remove(true)	;
 			charts["column_chart"].xAxis[0].setCategories(['POPTV','AKANAL','PLANETTV','TV3','POPKINO']);	
 			var data=[{y:12.4,color:colors[0]}, {y:3.4,color:colors[1]}, {y:5.5,color:colors[2]},{y:1.5,color:colors[3]},{y:2.1,color:colors[4]}];
-			series = {name: "Vievers",data:data ,showInLegend: false, shadow:false};			
+			series = {name: "Vievers", data:data ,showInLegend: false, shadow:false};			
 			charts["column_chart"].addSeries(series);				
 	});
+
+	function initiateComments() {
+		console.log("test");
+		$("rect").hover(function() {
+            $(this).attr('data-content', 'Random number: ' + Math.random());
+        }).popover({trigger:'click', placement:'auto|right'}).click(function() {
+        	alert("test");
+            $('.popover').appendTo($(document.body));
+        });
+	}
 	
    </script>
    <style type="text/css">
