@@ -114,13 +114,31 @@
 	});
 
 	function initiateComments() {
-		console.log("test");
-		$("rect").hover(function() {
-            $(this).attr('data-content', 'Random number: ' + Math.random());
-        }).popover({trigger:'click', placement:'auto|right'}).click(function() {
-        	alert("test");
-            $('.popover').appendTo($(document.body));
-        });
+		$(document).ready(function() {
+			$(".highcharts-tracker rect").hover(function() {
+	           // $(this).attr('data-content', 'loading..');
+	           // $(this).attr('data-html', true);
+	            $(this).attr('data-content', '<div class="list-group" ><a href="#" class="list-group-item" style="border:0;"><h6 class="list-group-item-heading">matjaz@grosek.si @ 12.34</h6><p class="list-group-item-text">vsebina komentarja</p></a><a href="#" class="list-group-item"><h6 class="list-group-item-heading">matjaz@grosek.si @ 12.34</h6><p class="list-group-item-text">vsebina komentarja</p></a><a href="#" class="list-group-item"><h6 class="list-group-item-heading">matjaz@grosek.si @ 12.34</h6><p class="list-group-item-text">vsebina komentarja</p></a><a href="#" class="list-group-item"><h6 class="list-group-item-heading">matjaz@grosek.si @ 12.34</h6><p class="list-group-item-text">vsebina komentarja</p></a><a href="#" class="list-group-item"><h6 class="list-group-item-heading">matjaz@grosek.si @ 12.34</h6><p class="list-group-item-text">vsebina komentarja vsebina komentarja vsebina komentarjavsebina komentarjavsebina komentarjavsebina komentarjavsebina komentarja</p></a><div class="list-group-item" style="border-bottom: 0;"><form><input class="form-control" type="text" placeholder="comment.."/></form></div><button type="button" class="btn btn-default closePopover" data-toggle="button" style="margin-left:15px;margin-top:4px;">Close</button><button type="button" class="btn btn-primary" data-toggle="button" style="margin-left:15px;margin-top:4px">Save</button>');
+
+	            $(".closePopover").on("click", function() {
+		        	$(".popover").hide();
+		        })
+	            $(this).prepend('<span class="label label-default">New</span>');
+	        }).popover({trigger:'click', placement:'auto', html: true}).on("click",function() {
+	            $('.popover').appendTo($(document.body));
+	        }).on('show.bs.popover', function () {
+  				
+			}).on("mouseleave", function() {
+	        	//$(this).popover('hide')
+	        });
+
+	        //$(".highcharts-tracker rect").prepend('<button type="button" class="btn btn-primary btn-xs comments">comments</button>');
+
+	        
+		})
+		
+
+		
 	}
 	
    </script>
@@ -132,6 +150,20 @@
 		.color_box {width:14px;height: 14px;margin-right: 5px;float:left}
 		.header {background-color: #2b2b2b;border: none;z-index: 2000;height: 60px;width: 100%;box-shadow: 0px 0px 10px rgba(0,0,0,0.5);}
 		
+		button.comments {
+			position:absolute;
+
+			top:0;
+		}
+
+		.popover-content {
+			padding: 0;
+		}
+
+		.list-group-item {
+			border-left: 0;
+			border-right: 0;
+		}
    </style>   
 </head>
 <body>
