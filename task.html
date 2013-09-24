@@ -5,8 +5,8 @@
    <META NAME="ROBOTS" CONTENT="NOINDEX, NOFOLLOW">
    <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />   
    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js" ></script>   
-   <script type="text/javascript" src="js/hc3.js" ></script>  
-   <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/angularjs/1.0.8/angular.min.js"></script>
+   <script type="text/javascript" src="js/hc3.js"></script> 
+   <script src="/socket.io/socket.io.js"></script> 
    <!-- Latest compiled and minified CSS -->
 	<link rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap.min.css">
 	<!-- Optional theme
@@ -47,12 +47,13 @@
 					}],							
 				},
 				tooltip: {
-					headerFormat: '<span style="font-size:10px">{point.key}</span><table>',
-					pointFormat: '<tr><td style="color:{series.color};padding:0">Rating:</td>' +
-						'<td style="padding:0"><b>{point.y:.1f} %</b></td></tr>',
+					headerFormat: '<span style="font-size:12px">{point.key}</span><table>',
+					pointFormat: '<tr><td style="color:{series.color};font-size:10px;padding:0">Rating:</td>' +
+						'<td style="padding:0;font-size:10px;white-space:nowrap;"><b>{point.y:.1f} %</b></td></tr>',
 					footerFormat: '</table>',
 					shared: true,
-					useHTML: true
+					useHTML: true,
+					enabled: true
 				},
 				
 				plotOptions: {							
@@ -76,16 +77,13 @@
 								enabled: false
 							},
 							animation: false,
-							point: {
-			                    events: {
-			                        click: function() {
-			                        	// $(this).popover({
-			                        	// 	content: "test"
-			                        	// })
-			                            //alert ('Category: '+ this.category +', value: '+ this.y);
-			                        }
-			                    }
-			                }
+							dataLabels: {
+				                    enabled: true,
+				                    inside: false,
+				                    align: 'right',
+				                    useHTML: true,
+				                    format: '<a href="#" class="comments">comments <span class="label label-default"></span></a>'
+				            },
 						}
 					},					  
 				exporting: {
@@ -113,34 +111,56 @@
 			charts["column_chart"].addSeries(series);				
 	});
 
+	//update comments
+	var socket = io.connect('http://localhost:8080');
+	socket.on('comments', function (data) {
+	 	// console.log(data);
+	  	//socket.emit('my other event', { my: 'data' });
+	  	$(data).each(function(i, el) {
+	  		total = $(".highcharts-data-labels > div:eq("+el.category_id+") a.comments span.label").html();
+	  		$(".highcharts-data-labels > div:eq("+el.category_id+") a.comments span.label").text(el.total);
+	  		//notify user about new comment
+	  		if(total != "" && total != el.total) 
+	  			$(".highcharts-data-labels > div:eq("+el.category_id+") a.comments span.label").removeClass("label-default").addClass("label-success");
+	  		var comments = "";
+	  		$(el.comments).each(function(i, el) {
+	  			comments += '<a href="#" class="list-group-item"><h6 class="list-group-item-heading">'+el.mail+'</h6><span class="time">@'+el.time+'</span><p class="list-group-item-text">'+el.comment+'</p></a>'
+	  		})
+
+	  		$(".highcharts-tracker rect:eq("+el.category_id+")").attr('data-content', '<div class="list-group"><div class="scroll">'+comments+'</div><div class="list-group-item" style="border: 0;padding-bottom:0;"><form><input class="form-control" type="text" placeholder="comment.."/><button type="button" onclick="closePopover()" class="btn btn-default closePopover" style="margin-top:4px;">Close</button><button type="button" class="btn btn-primary pull-right" data-toggle="button" style="margin-top:4px">Save</button></form></div>');
+
+	  	})
+	});
+
 	function initiateComments() {
 		$(document).ready(function() {
 			$(".highcharts-tracker rect").hover(function() {
-	           // $(this).attr('data-content', 'loading..');
-	           // $(this).attr('data-html', true);
-	            $(this).attr('data-content', '<div class="list-group" ><a href="#" class="list-group-item" style="border:0;"><h6 class="list-group-item-heading">matjaz@grosek.si @ 12.34</h6><p class="list-group-item-text">vsebina komentarja</p></a><a href="#" class="list-group-item"><h6 class="list-group-item-heading">matjaz@grosek.si @ 12.34</h6><p class="list-group-item-text">vsebina komentarja</p></a><a href="#" class="list-group-item"><h6 class="list-group-item-heading">matjaz@grosek.si @ 12.34</h6><p class="list-group-item-text">vsebina komentarja</p></a><a href="#" class="list-group-item"><h6 class="list-group-item-heading">matjaz@grosek.si @ 12.34</h6><p class="list-group-item-text">vsebina komentarja</p></a><a href="#" class="list-group-item"><h6 class="list-group-item-heading">matjaz@grosek.si @ 12.34</h6><p class="list-group-item-text">vsebina komentarja vsebina komentarja vsebina komentarjavsebina komentarjavsebina komentarjavsebina komentarjavsebina komentarja</p></a><div class="list-group-item" style="border-bottom: 0;"><form><input class="form-control" type="text" placeholder="comment.."/></form></div><button type="button" class="btn btn-default closePopover" data-toggle="button" style="margin-left:15px;margin-top:4px;">Close</button><button type="button" class="btn btn-primary" data-toggle="button" style="margin-left:15px;margin-top:4px">Save</button>');
-
-	            $(".closePopover").on("click", function() {
-		        	$(".popover").hide();
-		        })
-	            $(this).prepend('<span class="label label-default">New</span>');
-	        }).popover({trigger:'click', placement:'auto', html: true}).on("click",function() {
-	            $('.popover').appendTo($(document.body));
-	        }).on('show.bs.popover', function () {
-  				
-			}).on("mouseleave", function() {
-	        	//$(this).popover('hide')
+	         
+	        }).popover({trigger:'manual', placement:'auto', html: true}).on('press', function() {
+	        	$(".highcharts-tracker rect").not(this).popover('hide');
+	        	$(this).popover('show');
+	        	$('.popover').appendTo($(document.body));
+	        	$("div.scroll").scrollTop($("div.scroll")[0].scrollHeight);
+	        	//clear notification
+	        	i = $(this).index();
+	        	$(".highcharts-data-labels > div:eq("+i+") a.comments span.label").addClass("label-default").removeClass("label-success");
+	        }).on('shown.bs.popover', function () {
+  				$('div.arrow').remove();
+			}).each(function(i, el) {
+	        	$(el).attr('data-content', '<div class="list-group"><div class="scroll"></div><div class="list-group-item" style="border: 0;padding-bottom:0;"><form><input class="form-control" type="text" placeholder="comment.."/><button type="button" onclick="closePopover()" class="btn btn-default closePopover" style="margin-top:4px;">Close</button><button type="button" class="btn btn-primary pull-right" data-toggle="button" style="margin-top:4px">Save</button></form></div>');
 	        });
-
-	        //$(".highcharts-tracker rect").prepend('<button type="button" class="btn btn-primary btn-xs comments">comments</button>');
-
-	        
-		})
-		
-
-		
+			//show tooltip with comments
+	        $('a.comments').on('click', function() {
+				i = $(this).parent().parent().index();
+				$(".highcharts-tracker rect:eq("+i+")").trigger('press');
+			})	
+		});			
 	}
-	
+
+	function closePopover() {
+		$(".highcharts-tracker rect").popover('hide');
+	}
+
    </script>
    <style type="text/css">
 		 body{font-family:arial;font-size:11px;margin:0px;padding:0px;}
@@ -149,21 +169,39 @@
 		.collab_users{width:100%; padding:5px 10px;background-color:#ddd;float:left;}
 		.color_box {width:14px;height: 14px;margin-right: 5px;float:left}
 		.header {background-color: #2b2b2b;border: none;z-index: 2000;height: 60px;width: 100%;box-shadow: 0px 0px 10px rgba(0,0,0,0.5);}
-		
-		button.comments {
-			position:absolute;
-
-			top:0;
+	
+		.popover.top {
+			margin-top: -14px;
 		}
 
 		.popover-content {
 			padding: 0;
 		}
 
+		.scroll {
+			max-height: 250px;
+			overflow-y: auto; 
+		}
+
+		.list-group {
+			margin-bottom: 10px;
+		}
+
 		.list-group-item {
 			border-left: 0;
 			border-right: 0;
 		}
+		.list-group-item-heading {
+			margin-bottom: 0;
+		}
+		.list-group-item-text {
+			margin-top: 5px;
+		}
+
+		span.time {
+			font-size:10px;
+		}
+
    </style>   
 </head>
 <body>
