@@ -116,11 +116,10 @@
 		  		if(current == "")
 		  			current = 0;
 		  		$(".highcharts-data-labels > div:eq("+el.category_id+") a.comments span.label").text(el.count);
-		  		// newComments = false;
+
 		  		//notify user about new comment
 		  		if(current != el.count) {
 		  			$(".highcharts-data-labels > div:eq("+el.category_id+") a.comments span.label").removeClass("label-default").addClass("label-success");
-		  			//newComments = true;
 		  		}
 		  		//list of comments
 		  		if(current == 0)
@@ -154,19 +153,13 @@
 		  		$(".highcharts-tracker rect:eq("+el.category_id+")").attr('data-content', '<div class="list-group" data-category="'+el.category_id+'"><div class="scroll">'+comments+'</div><div class="list-group-item" style="border: 0;padding-bottom:0;"><form class="commentForm" data-category="'+el.category_id+'"><input class="form-control commentText" type="text" placeholder="comment.."/><button type="button" onclick="closePopover()" class="btn btn-default closePopover" style="margin-top:4px;">Close</button><button type="submit" class="btn btn-primary pull-right save" style="margin-top:4px" data-category="'+el.category_id+'">Save</button></form></div>');
 
 		  		//refresh open popover
-		  		//if(newComments) {
-		  			popover = $(".popover:visible .list-group[data-category='"+el.category_id+"'] .scroll");
-		  			if(popover.length > 0) {
-		  				popover.html(comments);
-		  				popover.scrollTop(popover[0].scrollHeight);
-		  				//remove highlited class
-		  			// 	setTimeout(function() {	
-							// $("a.active").removeClass("active", 450)
-		  			// 	}, 300);
-		  			}
+	  			popover = $(".popover:visible .list-group[data-category='"+el.category_id+"'] .scroll");
+	  			if(popover.length > 0) {
+	  				popover.html(comments);
+	  				popover.scrollTop(popover[0].scrollHeight);
+	  			}
 
-		  			$("a.active:visible").removeClass("active", 650);
-	  			//}
+	  			$("a.active:visible").removeClass("active", 650);
 		  	});
 		});
 	});
@@ -194,9 +187,8 @@
 					data.comment = input.val();
 					data.user_id = $("select.users").val(); //from select
 
-					if(data.comment == "") {
+					if(data.comment == "") 
 						return;
-					} 
 
 					$.ajax({
 						type: 'POST',
@@ -218,9 +210,7 @@
 				$(".highcharts-tracker rect:eq("+i+")").trigger('press');
 				//clear notification
 	        	$(".highcharts-data-labels > div:eq("+i+") a.comments span.label").addClass("label-default").removeClass("label-success");
-			});
-
-	        
+			});	        
 		});			
 	}
 

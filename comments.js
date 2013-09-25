@@ -14,8 +14,7 @@ var Db = require('mongodb').Db,
     BSON = require('mongodb').pure().BSON,
     assert = require('assert');
 
-// Open the connection to the server
- var db = new Db('local', new Server('localhost', 27017));
+var db = new Db('local', new Server('localhost', 27017));
 
 server.listen(8080);
 var express=require('express');
@@ -29,21 +28,23 @@ app.configure(function () {
 app.get('/', function (req, res) {
   res.sendfile(__dirname + '/task.html');
 });
-
-app.post('/addComment', function(req, res){
-  db.open(function(err, db) {
-    assert.equal(null, err);
-    db.collection('iptvbeats', function(err, collection) {
-      collection.ensureIndex({"_id":1}, {unique:true}, function(err, indexName) {
-        collection.insert({category_id: req.body.category_id, user_id: req.body.user_id, comment: req.body.comment, date_time: new Date()});
-        db.close();
-        res.send({successful: true});
+//add comment to database
+app.post('/addComment', function(req, res) {
+  try {
+    db.open(function(err, db) {
+      assert.equal(null, err);
+      db.collection('iptvbeats', function(err, collection) {
+        collection.ensureIndex({"_id":1}, {unique:true}, function(err, indexName) {
+          collection.insert({category_id: req.body.category_id, user_id: req.body.user_id, comment: req.body.comment, date_time: new Date()});
+          db.close();
+          res.send({successful: true});
+        });
       });
-
-     
     });
-  });
-
+  } catch(e) {
+    db.close();
+    res.send({successful: false});
+  }    
 });
 
 io.sockets.on('connection', function (socket) {
