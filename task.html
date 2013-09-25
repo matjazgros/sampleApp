@@ -4,8 +4,10 @@
    <title>iptvbeat.com - Task </title>
    <META NAME="ROBOTS" CONTENT="NOINDEX, NOFOLLOW">
    <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />   
-   <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js" ></script>   
-   <script type="text/javascript" src="js/hc3.js"></script> 
+   <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js" ></script>
+   <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.10.3/jquery-ui.min.js"></script>
+   <script src="js/moment.js"></script>   
+   <script src="js/hc3.js"></script> 
    <script src="/socket.io/socket.io.js"></script> 
    <!-- Latest compiled and minified CSS -->
 	<link rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap.min.css">
@@ -101,65 +103,132 @@
 	}
 	var charts=[];
 	var colors = ['#33b5e5', '#ff4444', '#ffbb33', '#99cc00', '#aa66cc', '#64E572', '#FF9655', '#FFF263', '#6AF9C4', '#2f7ed8', '#0d233a', '#8bbc21', '#910000', '#1aadce', '#492970', '#f28f43', '#77a1e5', '#c42525', '#a6c96a','#ddd'];
-	$(function(){			
-			//column chart
-			charts["column_chart"] = new Highcharts.Chart(chart_option.CreateOption('column_chart', "column"));
-			while (charts["column_chart"].series.length > 0)  charts["column_chart"].series[0].remove(true)	;
-			charts["column_chart"].xAxis[0].setCategories(['POPTV','AKANAL','PLANETTV','TV3','POPKINO']);	
-			var data=[{y:12.4,color:colors[0]}, {y:3.4,color:colors[1]}, {y:5.5,color:colors[2]},{y:1.5,color:colors[3]},{y:2.1,color:colors[4]}];
-			series = {name: "Vievers", data:data ,showInLegend: false, shadow:false};			
-			charts["column_chart"].addSeries(series);				
-	});
-
-	//update comments
 	var socket = io.connect('http://localhost:8080');
-	socket.on('comments', function (data) {
-	 	// console.log(data);
-	  	//socket.emit('my other event', { my: 'data' });
-	  	$(data).each(function(i, el) {
-	  		total = $(".highcharts-data-labels > div:eq("+el.category_id+") a.comments span.label").html();
-	  		$(".highcharts-data-labels > div:eq("+el.category_id+") a.comments span.label").text(el.total);
-	  		//notify user about new comment
-	  		if(total != "" && total != el.total) 
-	  			$(".highcharts-data-labels > div:eq("+el.category_id+") a.comments span.label").removeClass("label-default").addClass("label-success");
-	  		var comments = "";
-	  		$(el.comments).each(function(i, el) {
-	  			comments += '<a href="#" class="list-group-item"><h6 class="list-group-item-heading">'+el.mail+'</h6><span class="time">@'+el.time+'</span><p class="list-group-item-text">'+el.comment+'</p></a>'
-	  		})
+	$(function(){			
+		//column chart
+		charts["column_chart"] = new Highcharts.Chart(chart_option.CreateOption('column_chart', "column"));
+		while (charts["column_chart"].series.length > 0)  charts["column_chart"].series[0].remove(true)	;
+		charts["column_chart"].xAxis[0].setCategories(['POPTV','AKANAL','PLANETTV','TV3','POPKINO']);	
+		var data=[{y:12.4,color:colors[0]}, {y:3.4,color:colors[1]}, {y:5.5,color:colors[2]},{y:1.5,color:colors[3]},{y:2.1,color:colors[4]}];
+		series = {name: "Vievers", data:data ,showInLegend: false, shadow:false};			
+		charts["column_chart"].addSeries(series);	
 
-	  		$(".highcharts-tracker rect:eq("+el.category_id+")").attr('data-content', '<div class="list-group"><div class="scroll">'+comments+'</div><div class="list-group-item" style="border: 0;padding-bottom:0;"><form><input class="form-control" type="text" placeholder="comment.."/><button type="button" onclick="closePopover()" class="btn btn-default closePopover" style="margin-top:4px;">Close</button><button type="button" class="btn btn-primary pull-right" data-toggle="button" style="margin-top:4px">Save</button></form></div>');
 
-	  	})
+
+		//updating comments
+		socket.on('comments', function (data) {
+		  	$(data).each(function(i, el) {
+		  	
+		  		current = $(".highcharts-data-labels > div:eq("+el.category_id+") a.comments span.label").text();
+		  		if(current == "")
+		  			current = 0;
+		  		$(".highcharts-data-labels > div:eq("+el.category_id+") a.comments span.label").text(el.count);
+		  		newComments = false;
+		  		//notify user about new comment
+		  		if(current != 0 && current != el.count) {
+		  			$(".highcharts-data-labels > div:eq("+el.category_id+") a.comments span.label").removeClass("label-default").addClass("label-success");
+		  			newComments = true;
+		  		}
+		  		//list of comments
+		  		if(current == 0)
+		  			var mark = el.count;
+		  		else
+		  			var mark = current;
+
+	  			var comments = "";
+		  		$(el.comments).each(function(i, el) {
+		  			//mark new comments
+		  			if(i >= mark)
+		  				comments += '<a href="#" class="list-group-item active"><h6 class="list-group-item-heading">'+el.user_id+'</h6><span class="time">@'+moment(el.date_time).format('D.M.YY H:m')+'</span><p class="list-group-item-text">'+el.comment+'</p></a>';
+		  			else
+		  				comments += '<a href="#" class="list-group-item"><h6 class="list-group-item-heading">'+el.user_id+'</h6><span class="time">@'+moment(el.date_time).format('D.M.YY H:m')+'</span><p class="list-group-item-text">'+el.comment+'</p></a>'
+		  		})
+		  		//popover content
+		  		$(".highcharts-tracker rect:eq("+el.category_id+")").attr('data-content', '<div class="list-group" data-category="'+el.category_id+'"><div class="scroll">'+comments+'</div><div class="list-group-item" style="border: 0;padding-bottom:0;"><form class="commentForm" data-category="'+el.category_id+'"><input class="form-control commentText" type="text" placeholder="comment.."/><button type="button" onclick="closePopover()" class="btn btn-default closePopover" style="margin-top:4px;">Close</button><button type="submit" class="btn btn-primary pull-right save" style="margin-top:4px" data-category="'+el.category_id+'">Save</button></form></div>');
+
+		  		//refresh open popover
+		  		if(newComments) {
+		  			popover = $(".popover:visible .list-group[data-category='"+el.category_id+"'] .scroll");
+		  			if(popover.length > 0) {
+		  				popover.html(comments).show();
+		  				popover.scrollTop(popover[0].scrollHeight);
+		  				//remove highlited class
+		  				setTimeout(function() {	
+							$("a.active").removeClass("active", 450)
+		  				}, 300);
+		  			}
+	  			}
+		  	});
+		});
+
+		
 	});
 
+	
 	function initiateComments() {
+
 		$(document).ready(function() {
-			$(".highcharts-tracker rect").hover(function() {
-	         
-	        }).popover({trigger:'manual', placement:'auto', html: true}).on('press', function() {
+			var hash = location.hash.substr(1);
+			$(".highcharts-tracker rect").popover({trigger:'manual', placement:'auto', html: true}).on('press', function() {
 	        	$(".highcharts-tracker rect").not(this).popover('hide');
 	        	$(this).popover('show');
 	        	$('.popover').appendTo($(document.body));
 	        	$("div.scroll").scrollTop($("div.scroll")[0].scrollHeight);
-	        	//clear notification
-	        	i = $(this).index();
-	        	$(".highcharts-data-labels > div:eq("+i+") a.comments span.label").addClass("label-default").removeClass("label-success");
+
+	        	
 	        }).on('shown.bs.popover', function () {
   				$('div.arrow').remove();
+
+  				$("form.commentForm").on("submit", function(e) {
+					//console.log("test");
+					e.preventDefault();
+					var this_ = $(this);
+					var data = {};
+					// console.log($(this).attr("data-category"));
+					data.category_id = $(this).attr("data-category");
+					data.comment = $(this).find("input.commentText").val();
+					data.user_id = "matjaz@grosek.si";
+					console.log(data);
+					$.ajax({
+						type: 'POST',
+						data: JSON.stringify(data),
+				        contentType: 'application/json',
+				        url: 'http://localhost:8080/addComment',						
+				        success: function(data) {
+				        	socket.emit("addedComment");
+				        	$(this_).find("input.commentText").val("").blur();
+				            //console.log('success');
+				            //console.log(JSON.stringify(data));
+				        }
+				    });
+					
+				});
+			//adding new comment
+			// $("button.save").on("click", function() {
+			// 	$(this).parent().submit();
+			// 	console.log("test1");
+			// })
+
 			}).each(function(i, el) {
-	        	$(el).attr('data-content', '<div class="list-group"><div class="scroll"></div><div class="list-group-item" style="border: 0;padding-bottom:0;"><form><input class="form-control" type="text" placeholder="comment.."/><button type="button" onclick="closePopover()" class="btn btn-default closePopover" style="margin-top:4px;">Close</button><button type="button" class="btn btn-primary pull-right" data-toggle="button" style="margin-top:4px">Save</button></form></div>');
+	        	$(el).attr('data-content', '<div class="list-group"><div class="scroll"></div><div class="list-group-item" style="border: 0;padding-bottom:0;"><form class="commentForm" data-category="'+i+'"><input class="form-control commentText" type="text" placeholder="comment.."/><button type="button" onclick="closePopover()" class="btn btn-default closePopover" style="margin-top:4px;">Close</button><button type="submit" class="btn btn-primary pull-right"  style="margin-top:4px">Save</button></form></div>');
 	        });
 			//show tooltip with comments
 	        $('a.comments').on('click', function() {
 				i = $(this).parent().parent().index();
 				$(".highcharts-tracker rect:eq("+i+")").trigger('press');
-			})	
+				//clear notification
+	        	$(".highcharts-data-labels > div:eq("+i+") a.comments span.label").addClass("label-default").removeClass("label-success");
+			});
+
+	        
 		});			
 	}
 
 	function closePopover() {
 		$(".highcharts-tracker rect").popover('hide');
 	}
+
+	
 
    </script>
    <style type="text/css">
@@ -191,6 +260,10 @@
 			border-left: 0;
 			border-right: 0;
 		}
+
+		.list-group-item:first-child {
+			border-top: 0;
+		}
 		.list-group-item-heading {
 			margin-bottom: 0;
 		}
@@ -202,6 +275,19 @@
 			font-size:10px;
 		}
 
+		
+
+		.list-group-item.active .list-group-item-text, 
+		.list-group-item.active:hover .list-group-item-text, 
+		.list-group-item.active:focus .list-group-item-text,
+		.list-group-item.active .list-group-item-heading, 
+		.list-group-item.active:hover .list-group-item-heading, 
+		.list-group-item.active:focus .list-group-item-heading,
+		.list-group-item.active .time, 
+		.list-group-item.active:hover .time, 
+		.list-group-item.active:focus .time {
+			color: #555;
+		}
    </style>   
 </head>
 <body>
@@ -213,6 +299,7 @@
 		<div style="padding:0px 20px 15px 0px;position:relative">	
 			<div class="collab_users">
 				<div class="legend_user"><div class="color_box" style="background-color:#5E4FA2;"></div><span>User 1</span></div>
+
 			</div>
 			<div class="clear"></div> 	
 			<div class="chart" id="column_chart"></div>				

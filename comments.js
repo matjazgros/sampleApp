@@ -14,6 +14,7 @@ var Db = require('mongodb').Db,
     BSON = require('mongodb').pure().BSON,
     assert = require('assert');
 
+//var moment = require('moment');
 
 
 // Open the connection to the server
@@ -40,18 +41,39 @@ app.get('/', function (req, res) {
   res.sendfile(__dirname + '/task.html');
 });
 
-io.sockets.on('connection', function (socket) {
-  socket.emit('comments', getCommentsCount(socket));
-  var commentsTimer = setInterval(function () {
-    // getCommentsCount(function (commentsData) {
-    //   socket.emit('comments', commentsData);
-    // });
-  getCommentsCount(socket)
+app.post('/addComment', function(req, res){
+  var obj = {};
+  //console.log('body: ' + JSON.stringify(req.body));
+ // res.send(req.body);
+  db.open(function(err, db) {
+    assert.equal(null, err);
+    db.collection('iptvbeats', function(err, collection) {
+      collection.ensureIndex({"_id":1}, {unique:true}, function(err, indexName) {
+      //   console.log(err);
+       //  console.log(indexName);
+        collection.insert({category_id: req.body.category_id, user_id: req.body.user_id, comment: req.body.comment, date_time: new Date()});
+        db.close();
+        res.send(req.body);
+      });
 
-  }, 10000);
+     
+    });
+  });
+
+});
+
+io.sockets.on('connection', function (socket) {
+  socket.emit('comments', getComments(socket));
+  var commentsTimer = setInterval(function () {
+    getComments(socket);
+  }, 5000);
 
   socket.on('disconnect', function () {
     clearInterval(commentsTimer);
+  });
+
+  socket.on('addedComment', function () {
+    socket.emit('comments', getComments(socket));
   });
 
   //socket.emit('comments', { hello: 'world' });
@@ -59,59 +81,38 @@ io.sockets.on('connection', function (socket) {
   //   console.log(data);
   // });
 });
+function custom_sort(a, b) {
+    return new Date(a.date_time).getTime() - new Date(b.date_time).getTime();
+}
 
-function getCommentsCount(socket) {
+function getComments(socket) {
     db.open(function(err, db) {
-    assert.equal(null, err);
-    db.collection('iptvbeats', function(err, collection) {
-        
-        // collection.find({}, function(err, comments) {
-        //       if( err || !comments) console.log("No comments found");
-        //       else comments.each( function(comment) {
-        //         console.log(comment);
-        //       } );
-        //         db.close();
-        //     });
+      assert.equal(null, err);
+      db.collection('iptvbeats', function(err, collection) {
+        // var collection_ = collection;
+        var comments_ = Array();
 
-      var comments_ = Array();
-      collection.aggregate([
-        {$group : {
-          '_id' : '$category_id',
-          'count' : {$sum : 1}
-        }}],
-        function (err, items){
-
-          items.forEach(function(item){
-            category = {};
-            category.total = item.count;
-            category.category_id = item._id;
-            category.comments =  [{
-                    mail: "matjaz@grosek.si",
-                    time: "28.9.2013 13:24",
-                    comment: "111to je vsebina komentarja"
-                  },{
-                    mail: "matjaz@grosek.si",
-                    time: "28.9.2013 13:24",
-                    comment: "222to je vsebina komentarja"
-                  },{
-                    mail: "matjaz@grosek.si",
-                    time: "28.9.2013 13:24",
-                    comment: "33to je vsebina komentarja"
-                  },{
-                    mail: "matjaz@grosek.si",
-                    time: "28.9.2013 13:24",
-                    comment: "44to je vsebina komentarja"
-                  },{
-                    mail: "matjaz@grosek.si",
-                    time: "28.9.2013 13:24",
-                    comment: "156to je vsebina komentarja"
-                  }];
-
-            comments_.push(category);
-          })
-          db.close();
-          socket.emit('comments', comments_);
-        });
-    });
-  });    
+        collection.group(
+            { "category_id": true },
+            {"category_id":  { $exists: true}},
+            {
+              count: 0,
+              comments: []
+            },
+            function(item, summaries){
+              summaries.count++;
+              //if(item.category_id != null)
+              summaries.comments[summaries.comments.length] = item;
+            },
+            true,  // use the group command
+            function(err, results){ //self.eventEmitter.emit(doneEvent, results)
+              if(results.comments !== undefined) 
+                 console.log(results.comments)
+              //.sort(custom_sort);
+              socket.emit('comments', results);
+              db.close();
+            }
+        );
+      });
+    });    
 }
