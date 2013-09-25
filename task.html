@@ -1,23 +1,17 @@
 <!DOCTYPE html>
-
 <head>
-   <title>iptvbeat.com - Task </title>
-   <META NAME="ROBOTS" CONTENT="NOINDEX, NOFOLLOW">
-   <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />   
-   <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js" ></script>
-   <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.10.3/jquery-ui.min.js"></script>
-   <script src="js/moment.js"></script>   
-   <script src="js/hc3.js"></script> 
-   <script src="/socket.io/socket.io.js"></script> 
-   <!-- Latest compiled and minified CSS -->
+   	<title>iptvbeat.com - Task</title>
+   	<META NAME="ROBOTS" CONTENT="NOINDEX, NOFOLLOW">
+   	<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />   
+   	<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js" ></script>
+   	<script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.10.3/jquery-ui.min.js"></script>
+   	<script src="js/moment.js"></script>   
+   	<script src="js/hc3.js"></script> 
+   	<script src="/socket.io/socket.io.js"></script> 
 	<link rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap.min.css">
-	<!-- Optional theme
-	<link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap-theme.min.css">
-	 -->
-	<!-- Latest compiled and minified JavaScript -->
 	<script src="https://netdna.bootstrapcdn.com/bootstrap/3.0.0/js/bootstrap.min.js"></script>
-   <script type="text/javascript">
-   chart_option={		
+   	<script type="text/javascript">
+   	chart_option={		
 		CreateOption:function(render, chart_type){	
 			Highcharts.setOptions({
 					global: {
@@ -113,8 +107,6 @@
 		series = {name: "Vievers", data:data ,showInLegend: false, shadow:false};			
 		charts["column_chart"].addSeries(series);	
 
-
-
 		//updating comments
 		socket.on('comments', function (data) {
 		  	$(data).each(function(i, el) {
@@ -160,8 +152,6 @@
 	  			}
 		  	});
 		});
-
-		
 	});
 
 	
@@ -197,18 +187,10 @@
 				        success: function(data) {
 				        	socket.emit("addedComment");
 				        	$(this_).find("input.commentText").val("").blur();
-				            //console.log('success');
-				            //console.log(JSON.stringify(data));
 				        }
 				    });
 					
 				});
-			//adding new comment
-			// $("button.save").on("click", function() {
-			// 	$(this).parent().submit();
-			// 	console.log("test1");
-			// })
-
 			}).each(function(i, el) {
 	        	$(el).attr('data-content', '<div class="list-group"><div class="scroll"></div><div class="list-group-item" style="border: 0;padding-bottom:0;"><form class="commentForm" data-category="'+i+'"><input class="form-control commentText" type="text" placeholder="comment.."/><button type="button" onclick="closePopover()" class="btn btn-default closePopover" style="margin-top:4px;">Close</button><button type="submit" class="btn btn-primary pull-right"  style="margin-top:4px">Save</button></form></div>');
 	        });
@@ -227,8 +209,6 @@
 	function closePopover() {
 		$(".highcharts-tracker rect").popover('hide');
 	}
-
-	
 
    </script>
    <style type="text/css">
@@ -274,8 +254,6 @@
 		span.time {
 			font-size:10px;
 		}
-
-		
 
 		.list-group-item.active .list-group-item-text, 
 		.list-group-item.active:hover .list-group-item-text, 
