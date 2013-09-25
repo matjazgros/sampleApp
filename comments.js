@@ -15,8 +15,8 @@ var Db = require('mongodb').Db,
     assert = require('assert');
 
 var db = new Db('local', new Server('localhost', 27017));
-
-server.listen(8080);
+var port = process.env.PORT || 5000;
+server.listen(port);
 var express=require('express');
 app.configure(function () {
     app.use(express.cookieParser());
