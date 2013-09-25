@@ -109,17 +109,18 @@
 
 		//updating comments
 		socket.on('comments', function (data) {
+
 		  	$(data).each(function(i, el) {
 		  	
 		  		current = $(".highcharts-data-labels > div:eq("+el.category_id+") a.comments span.label").text();
 		  		if(current == "")
 		  			current = 0;
 		  		$(".highcharts-data-labels > div:eq("+el.category_id+") a.comments span.label").text(el.count);
-		  		newComments = false;
+		  		// newComments = false;
 		  		//notify user about new comment
-		  		if(current != 0 && current != el.count) {
+		  		if(current != el.count) {
 		  			$(".highcharts-data-labels > div:eq("+el.category_id+") a.comments span.label").removeClass("label-default").addClass("label-success");
-		  			newComments = true;
+		  			//newComments = true;
 		  		}
 		  		//list of comments
 		  		if(current == 0)
@@ -129,27 +130,43 @@
 
 	  			var comments = "";
 		  		$(el.comments).each(function(i, el) {
+
+		  			switch(el.user_id) {
+		  				case "User 1": color = "#5E4FA2";
+		  				break;
+		  				case "User 2": color = "#0d233a";
+		  				break;
+		  				case "User 3": color = "#2f7ed8";
+		  				break;
+		  				case "User 4": color = "#FF9655";
+		  				break;
+		  				case "User 5": color = "#6AF9C4";
+		  				break;
+		  				default: color = "darkgray"
+		  			}
 		  			//mark new comments
 		  			if(i >= mark)
-		  				comments += '<a href="#" class="list-group-item active"><h6 class="list-group-item-heading">'+el.user_id+'</h6><span class="time">@'+moment(el.date_time).format('D.M.YY H:m')+'</span><p class="list-group-item-text">'+el.comment+'</p></a>';
+		  				comments += '<a href="#" class="list-group-item active" style="border-left: 4px solid '+color+';"><h6 class="list-group-item-heading">'+el.user_id+'</h6><span class="time">@'+moment(el.date_time).format('D.MM.YY H:mm')+'</span><p class="list-group-item-text">'+el.comment+'</p></a>';
 		  			else
-		  				comments += '<a href="#" class="list-group-item"><h6 class="list-group-item-heading">'+el.user_id+'</h6><span class="time">@'+moment(el.date_time).format('D.M.YY H:m')+'</span><p class="list-group-item-text">'+el.comment+'</p></a>'
+		  				comments += '<a href="#" class="list-group-item" style="border-left: 4px solid '+color+';"><h6 class="list-group-item-heading">'+el.user_id+'</h6><span class="time">@'+moment(el.date_time).format('DD.MM.YY H:mm')+'</span><p class="list-group-item-text">'+el.comment+'</p></a>'
 		  		})
 		  		//popover content
 		  		$(".highcharts-tracker rect:eq("+el.category_id+")").attr('data-content', '<div class="list-group" data-category="'+el.category_id+'"><div class="scroll">'+comments+'</div><div class="list-group-item" style="border: 0;padding-bottom:0;"><form class="commentForm" data-category="'+el.category_id+'"><input class="form-control commentText" type="text" placeholder="comment.."/><button type="button" onclick="closePopover()" class="btn btn-default closePopover" style="margin-top:4px;">Close</button><button type="submit" class="btn btn-primary pull-right save" style="margin-top:4px" data-category="'+el.category_id+'">Save</button></form></div>');
 
 		  		//refresh open popover
-		  		if(newComments) {
+		  		//if(newComments) {
 		  			popover = $(".popover:visible .list-group[data-category='"+el.category_id+"'] .scroll");
 		  			if(popover.length > 0) {
-		  				popover.html(comments).show();
+		  				popover.html(comments);
 		  				popover.scrollTop(popover[0].scrollHeight);
 		  				//remove highlited class
-		  				setTimeout(function() {	
-							$("a.active").removeClass("active", 450)
-		  				}, 300);
+		  			// 	setTimeout(function() {	
+							// $("a.active").removeClass("active", 450)
+		  			// 	}, 300);
 		  			}
-	  			}
+
+		  			$("a.active:visible").removeClass("active", 650);
+	  			//}
 		  	});
 		});
 	});
@@ -164,35 +181,36 @@
 	        	$(this).popover('show');
 	        	$('.popover').appendTo($(document.body));
 	        	$("div.scroll").scrollTop($("div.scroll")[0].scrollHeight);
-
-	        	
 	        }).on('shown.bs.popover', function () {
   				$('div.arrow').remove();
-
+  				//adding new comment
   				$("form.commentForm").on("submit", function(e) {
-					//console.log("test");
 					e.preventDefault();
 					var this_ = $(this);
 					var data = {};
-					// console.log($(this).attr("data-category"));
+					input = $(this).find("input.commentText");
+
 					data.category_id = $(this).attr("data-category");
-					data.comment = $(this).find("input.commentText").val();
-					data.user_id = "matjaz@grosek.si";
-					console.log(data);
+					data.comment = input.val();
+					data.user_id = $("select.users").val(); //from select
+
+					if(data.comment == "") {
+						return;
+					} 
+
 					$.ajax({
 						type: 'POST',
 						data: JSON.stringify(data),
 				        contentType: 'application/json',
 				        url: 'http://localhost:8080/addComment',						
 				        success: function(data) {
-				        	socket.emit("addedComment");
+				        	socket.emit("addedComment", {});
 				        	$(this_).find("input.commentText").val("").blur();
 				        }
 				    });
-					
 				});
 			}).each(function(i, el) {
-	        	$(el).attr('data-content', '<div class="list-group"><div class="scroll"></div><div class="list-group-item" style="border: 0;padding-bottom:0;"><form class="commentForm" data-category="'+i+'"><input class="form-control commentText" type="text" placeholder="comment.."/><button type="button" onclick="closePopover()" class="btn btn-default closePopover" style="margin-top:4px;">Close</button><button type="submit" class="btn btn-primary pull-right"  style="margin-top:4px">Save</button></form></div>');
+	        	$(el).attr('data-content', '<div class="list-group" data-category="'+i+'"><div class="scroll"></div><div class="list-group-item" data-category="'+i+'" style="border: 0;padding-bottom:0;"><form class="commentForm" data-category="'+i+'"><input class="form-control commentText" type="text" placeholder="comment.."/><button type="button" onclick="closePopover()" class="btn btn-default closePopover" style="margin-top:4px;">Close</button><button type="submit" class="btn btn-primary pull-right"  style="margin-top:4px">Save</button></form></div>');
 	        });
 			//show tooltip with comments
 	        $('a.comments').on('click', function() {
@@ -221,6 +239,7 @@
 	
 		.popover.top {
 			margin-top: -14px;
+			padding: 0;
 		}
 
 		.popover-content {
@@ -266,6 +285,23 @@
 		.list-group-item.active:focus .time {
 			color: #555;
 		}
+
+		select.users {
+			float:right;
+			
+		}
+
+		div.legend_user > ul {
+			float: left;
+			margin: 0;
+			padding: 0;
+		}
+
+		div.legend_user > ul > li {
+			float:left;
+			margin-left: 5px;
+			list-style-type: none;
+		}
    </style>   
 </head>
 <body>
@@ -276,8 +312,23 @@
 		<div class="clear"></div> 	
 		<div style="padding:0px 20px 15px 0px;position:relative">	
 			<div class="collab_users">
-				<div class="legend_user"><div class="color_box" style="background-color:#5E4FA2;"></div><span>User 1</span></div>
-
+				<div class="legend_user">
+					<ul>
+						<li><div class="color_box" style="background-color:#5E4FA2;"></div><span>User 1</span></li>
+						<li><div class="color_box" style="background-color:#0d233a;"></div><span>User 2</span></li>
+						<li><div class="color_box" style="background-color:#2f7ed8;"></div><span>User 3</span></li>
+						<li><div class="color_box" style="background-color:#FF9655;"></div><span>User 4</span></li>
+						<li><div class="color_box" style="background-color:#6AF9C4;"></div><span>User 5</span></li>
+					</ul>
+					<select class="users">
+					  <option value="User 1">User 1</option>
+					  <option value="User 2">User 2</option>
+					  <option value="User 3">User 3</option>
+					  <option value="User 4">User 4</option>
+					  <option value="User 5">User 5</option>
+					</select>
+				</div>
+				
 			</div>
 			<div class="clear"></div> 	
 			<div class="chart" id="column_chart"></div>				

@@ -37,7 +37,7 @@ app.post('/addComment', function(req, res){
       collection.ensureIndex({"_id":1}, {unique:true}, function(err, indexName) {
         collection.insert({category_id: req.body.category_id, user_id: req.body.user_id, comment: req.body.comment, date_time: new Date()});
         db.close();
-        res.send(req.body);
+        res.send({successful: true});
       });
 
      
@@ -62,17 +62,18 @@ io.sockets.on('connection', function (socket) {
 
 });
 
-function custom_sort(a, b) {
+function sortByDate(a, b) {
     return new Date(a.date_time).getTime() - new Date(b.date_time).getTime();
 }
 
 function getComments(socket) {
+  try {
     db.open(function(err, db) {
       assert.equal(null, err);
       db.collection('iptvbeats', function(err, collection) {
         collection.group(
             { "category_id": true },
-            {"category_id":  { $exists: true}},
+            { "category_id": { $exists: true}},
             {
               count: 0,
               comments: []
@@ -83,14 +84,20 @@ function getComments(socket) {
             },
             true,  
             function(err, results){ 
-              //TODO: sort comments
-              //if(results.comments !== undefined) 
-              //  console.log(results.comments)
+                //sort comments
+                for (var i in results) {
+                  category = results[i];
+                  category.comments.sort(sortByDate);
+                }
               
               socket.emit('comments', results);
               db.close();
             }
         );
       });
-    });    
+    });
+  } catch(e) {
+    db.close();
+    getComments(socket);
+  }    
 }
