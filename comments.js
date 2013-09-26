@@ -3,9 +3,10 @@ var app = require('express')(),
     io = require('socket.io').listen(server); 
 
 var mongodb = require('mongodb');
-var uri = process.env.DATABASE_URL
+var uri = process.env.DATABASE_URL;
+console.log(uri);
 var baza;
-mongodb.MongoClient.connect(uri, { server: { auto_reconnect: true } }, function (err, db) {
+mongodb.Db.connect(uri, { server: { auto_reconnect: true } }, function (err, db) {
       baza = db;
 });
 var port = process.env.PORT || 5000;
