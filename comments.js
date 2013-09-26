@@ -44,7 +44,7 @@ io.sockets.on('connection', function (socket) {
 
   socket.on('disconnect', function () {
     clearInterval(commentsTimer);
-    baza.close();
+    //baza.close();
   });
 
   socket.on('addedComment', function () {
