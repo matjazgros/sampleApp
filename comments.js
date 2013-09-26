@@ -1,20 +1,13 @@
-var app = require('express')()
-  , server = require('http').createServer(app)
-  , io = require('socket.io').listen(server); 
+var app = require('express')(), 
+    server = require('http').createServer(app),
+    io = require('socket.io').listen(server); 
 
-var Db = require('mongodb').Db,
-    MongoClient = require('mongodb').MongoClient,
-    Server = require('mongodb').Server,
-    ReplSetServers = require('mongodb').ReplSetServers,
-    ObjectID = require('mongodb').ObjectID,
-    Binary = require('mongodb').Binary,
-    GridStore = require('mongodb').GridStore,
-    Grid = require('mongodb').Grid,
-    Code = require('mongodb').Code,
-    BSON = require('mongodb').pure().BSON,
-    assert = require('assert');
-
-var db = new Db('local', new Server('localhost', 27017));
+var mongodb = require('mongodb');
+var uri = process.env.DATABASE_URL
+var baza;
+mongodb.MongoClient.connect(uri, { server: { auto_reconnect: true } }, function (err, db) {
+      baza = db;
+});
 var port = process.env.PORT || 5000;
 server.listen(port);
 var express=require('express');
@@ -31,18 +24,15 @@ app.get('/', function (req, res) {
 //add comment to database
 app.post('/addComment', function(req, res) {
   try {
-    db.open(function(err, db) {
-      assert.equal(null, err);
-      db.collection('iptvbeats', function(err, collection) {
+      baza.collection('iptvbeat', function(err, collection) {
         collection.ensureIndex({"_id":1}, {unique:true}, function(err, indexName) {
-          collection.insert({category_id: req.body.category_id, user_id: req.body.user_id, comment: req.body.comment, date_time: new Date()});
-          db.close();
-          res.send({successful: true});
+          collection.insert({category_id: req.body.category_id, user_id: req.body.user_id, comment: req.body.comment, date_time: new Date()}, function(err, db) {
+            res.send({successful: true});
+          });
+          
         });
       });
-    });
   } catch(e) {
-    db.close();
     res.send({successful: false});
   }    
 });
@@ -55,12 +45,18 @@ io.sockets.on('connection', function (socket) {
 
   socket.on('disconnect', function () {
     clearInterval(commentsTimer);
+    baza.close();
   });
 
   socket.on('addedComment', function () {
-    socket.emit('comments', getComments(socket));
+    io.sockets.emit('comments', getComments(socket));
   });
 
+});
+
+io.configure(function () { 
+  io.set("transports", ["xhr-polling"]); 
+  io.set("polling duration", 10); 
 });
 
 function sortByDate(a, b) {
@@ -69,9 +65,8 @@ function sortByDate(a, b) {
 
 function getComments(socket) {
   try {
-    db.open(function(err, db) {
-      assert.equal(null, err);
-      db.collection('iptvbeats', function(err, collection) {
+
+      baza.collection('iptvbeat', function(err, collection) {
         collection.group(
             { "category_id": true },
             { "category_id": { $exists: true}},
@@ -92,13 +87,10 @@ function getComments(socket) {
                 }
               
               socket.emit('comments', results);
-              db.close();
             }
         );
       });
-    });
   } catch(e) {
-    db.close();
     getComments(socket);
   }    
 }
