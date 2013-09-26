@@ -175,6 +175,8 @@
 	        	$(this).popover('show');
 	        	$('.popover').appendTo($(document.body));
 	        	$("div.scroll").scrollTop($("div.scroll")[0].scrollHeight);
+	        }).on("click", function() {
+	        	$(this).trigger('press');
 	        }).on('shown.bs.popover', function () {
   				$('div.arrow').remove();
   				//adding new comment
@@ -197,7 +199,7 @@
 				        contentType: 'application/json',
 				        url: '/addComment',						
 				        success: function(data) {
-				        	socket.emit("addedComment", {});
+				        	socket.emit("addedComment");
 				        	$(this_).find("input.commentText").val("").blur();
 				        }
 				    });
@@ -206,7 +208,8 @@
 	        	$(el).attr('data-content', '<div class="list-group" data-category="'+i+'"><div class="scroll"></div><div class="list-group-item" data-category="'+i+'" style="border: 0;padding-bottom:0;"><form class="commentForm" data-category="'+i+'"><input class="form-control commentText" type="text" placeholder="comment.."/><button type="button" onclick="closePopover()" class="btn btn-default closePopover" style="margin-top:4px;">Close</button><button type="submit" class="btn btn-primary pull-right"  style="margin-top:4px">Save</button></form></div>');
 	        });
 			//show tooltip with comments
-	        $('a.comments').on('click', function() {
+	        $('a.comments').on('click', function(e) {
+	        	e.preventDefault();
 				i = $(this).parent().parent().index();
 				$(".highcharts-tracker rect:eq("+i+")").trigger('press');
 				//clear notification
@@ -244,6 +247,7 @@
 
 		.list-group {
 			margin-bottom: 10px;
+			padding-top: 3px;
 		}
 
 		.list-group-item {

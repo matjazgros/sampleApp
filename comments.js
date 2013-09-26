@@ -4,7 +4,6 @@ var app = require('express')(),
 
 var mongodb = require('mongodb');
 var uri = process.env.DATABASE_URL;
-console.log(uri);
 var baza;
 mongodb.Db.connect(uri, { server: { auto_reconnect: true } }, function (err, db) {
       baza = db;
@@ -30,7 +29,6 @@ app.post('/addComment', function(req, res) {
           collection.insert({category_id: req.body.category_id, user_id: req.body.user_id, comment: req.body.comment, date_time: new Date()}, function(err, db) {
             res.send({successful: true});
           });
-          
         });
       });
   } catch(e) {
@@ -42,7 +40,7 @@ io.sockets.on('connection', function (socket) {
   socket.emit('comments', getComments(socket));
   var commentsTimer = setInterval(function () {
     getComments(socket);
-  }, 5000);
+  }, 1000);
 
   socket.on('disconnect', function () {
     clearInterval(commentsTimer);
