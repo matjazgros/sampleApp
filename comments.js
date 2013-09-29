@@ -3,7 +3,7 @@ var app = require('express')(),
     io = require('socket.io').listen(server); 
 
 var mongodb = require('mongodb');
-var uri = 'mongodb://iptvbeat:iptvbeat@ds063307.mongolab.com:63307/iptvbeat';//process.env.DATABASE_URL;
+var uri = process.env.DATABASE_URL;
 var baza;
 mongodb.Db.connect(uri, { server: { auto_reconnect: true } }, function (err, db) {
       baza = db;
@@ -80,6 +80,6 @@ function updateComments(socket) {
       );
     });
   } catch(e) {
-    //updateComments(socket);
+    console.log(e);
   }    
 }
