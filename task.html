@@ -134,15 +134,15 @@
 
 			  			switch(el.user_id) {
 			  				case "User 1": color = "#5E4FA2";
-			  				break;
+			  					break;
 			  				case "User 2": color = "#0d233a";
-			  				break;
+			  					break;
 			  				case "User 3": color = "#2f7ed8";
-			  				break;
+			  					break;
 			  				case "User 4": color = "#FF9655";
-			  				break;
+			  					break;
 			  				case "User 5": color = "#6AF9C4";
-			  				break;
+			  					break;
 			  				default: color = "darkgray"
 			  			}
 			  			//mark new comments
@@ -160,7 +160,7 @@
 		  				popover.html(comments);
 		  				popover.scrollTop(popover[0].scrollHeight);
 		  			}
-		  			$("a.list-group-item.active:visible").removeClass("active", 650);
+		  			
 			  	}
 		  	});
 		});
@@ -180,6 +180,7 @@
 	        	$(this).trigger('press');
 	        }).on('shown.bs.popover', function () {
   				$('div.arrow').remove();
+  				$("a.list-group-item.active:visible").removeClass("active", 650);
   				//adding new comment
   				$("form.commentForm").on("submit", function(e) {
 					e.preventDefault();
